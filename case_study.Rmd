@@ -92,3 +92,27 @@ nyc_airbnb |>
   addMarkers(~lat, ~long)
 ```
 
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan", price < 1000) |>
+  leaflet() |>
+  addTiles() |>
+  addCircleMarkers(~lat, ~long, radius = 2)
+```
+
+```{r}
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(stars = review_scores_location / 2)
+
+pal <- colorNumeric(
+  palette = "viridis",
+  domain = nyc_airbnb$stars)
+
+nyc_airbnb |> 
+  filter(neighbourhood_group == "Manhattan", price < 1000) |>
+  leaflet() |> 
+  addProviderTiles(providers$CartoDB.Positron) |> 
+  addCircleMarkers(~lat, ~long, radius = 2, color = ~pal(stars))
+```
+
