@@ -1,0 +1,94 @@
+---
+title: "case study"
+author: "Tianqi Li"
+date: "2024-10-08"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(leaflet)
+```
+
+
+```{r}
+library(p8105.datasets)
+
+data(nyc_airbnb)
+```
+
+## Brainstorn questions
+
+* Where are max and min air bnb prices?
+  * what are average prices?
+  * what factors affect prices?
+* Where are prices going up and down over time?
+* What is the relationship between number of reviews and average review?
+* Does room type affect availability?
+* What is the location of the unit?
+  * What areas are popular?
+  * Popularity = number of units? average price?
+* Are there repeat hosts?
+  * If so, what does that mean?
+
+```{r}
+nyc_airbnb |>
+  count(room_type)
+
+nyc_airbnb |>
+  count(neighbourhood_group)
+```
+
+```{r}
+mean(pull(nyc_airbnb,price))
+max(pull(nyc_airbnb,price))
+min(pull(nyc_airbnb,price))
+```
+
+```{r}
+nyc_airbnb |>
+  group_by(room_type) |>
+  summarize(mean_price = mean(price))|>
+  pivot_wider(
+    names_from = room_type,
+    values_from = mean_price
+  )
+
+```
+
+```{r}
+nyc_airbnb |>
+  ggplot(aes(x = review_scores_location, y = price)) + geom_point()
+```
+
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan", price < 1000) |>
+  ggplot(aes(x = lat, y = long, color = price)) + geom_point(alpha = .1)
+```
+
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan", price < 1000, room_type == "Entire home/apt") |>
+  group_by(neighbourhood) |>
+  summarize(mean_price = mean(price)) |>
+  arrange(desc(mean_price))
+  
+```
+
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan", price < 1000, room_type == "Entire home/apt") |>
+  mutate(neighbourhood=fct_reorder(neighbourhood,price)) |>
+  ggplot(aes(x = neighbourhood, y = price)) + geom_violin() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan", price < 1000) |>
+  slice(1:10) |>
+  leaflet() |>
+  addTiles() |>
+  addMarkers(~lat, ~long)
+```
+
